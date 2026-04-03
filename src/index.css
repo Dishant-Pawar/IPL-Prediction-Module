@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Outfit", sans-serif;
+  --font-headline: "Manrope", "Outfit", sans-serif;
+
+  /* Global Colors */
+  --color-primary: #19398a;
+  --color-primary-container: #dbe1ff;
+  --color-on-primary-container: #00174b;
+  
+  --color-secondary: #39edca;
+  --color-secondary-container: #005144;
+  --color-on-secondary-container: #b3f4e2;
+
+  --color-tertiary: #ffb4a9;
+  --color-tertiary-container: #930006;
+  
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+
+  /* Theme-specific tokens */
+  --color-surface-container-lowest: var(--bg-lowest);
+  --color-surface-container-low: var(--bg-low);
+  --color-surface-container: var(--bg-normal);
+  --color-on-surface: var(--text-normal);
+  --color-outline: var(--text-muted);
+  --color-outline-variant: var(--border-normal);
+}
+
+:root {
+  --bg-app: #f9f9ff;
+  --bg-lowest: #ffffff;
+  --bg-low: #f0f3ff;
+  --bg-normal: #e3e7f5;
+  --text-normal: #191c20;
+  --text-muted: #44474e;
+  --border-normal: #c4c6d0;
+  
+  --sidebar-bg: #19398a;
+  --sidebar-text: #ffffff;
+  --sidebar-active: rgba(255, 255, 255, 0.1);
+}
+
+.dark {
+  --bg-app: #0f111a;
+  --bg-lowest: #1a1c26;
+  --bg-low: #242736;
+  --bg-normal: #2d3142;
+  --text-normal: #e2e2e6;
+  --text-muted: #90909a;
+  --border-normal: #44474e;
+  
+  --sidebar-bg: #0a0c14;
+  --sidebar-text: #e2e2e6;
+  --sidebar-active: rgba(255, 255, 255, 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--bg-app)] text-[var(--text-normal)] font-sans transition-colors duration-300;
+  }
+}
+
+/* Custom Utilities */
+.chart-gradient-primary {
+  background: linear-gradient(180deg, #19398a 0%, #4c66ff 100%);
+}
+
+.chart-gradient-secondary {
+  background: linear-gradient(180deg, #005144 0%, #39edca 100%);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
