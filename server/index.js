@@ -11,16 +11,31 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 app.use(express.json());
 app.use(cors({
-  origin: [FRONTEND_ORIGIN, 'https://ipl-prediction-module.vercel.app'], // Include common vercel deployment URL pattern if known
+  origin: [FRONTEND_ORIGIN, 'https://ipl-prediction-module.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB Connected successfully!'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
+// Connect to MongoDB using a global promise to avoid multiple connections in serverless
+let cachedDb = null;
+async function connectToDatabase() {
+    if (cachedDb) return cachedDb;
+    await mongoose.connect(process.env.MONGODB_URI);
+    cachedDb = mongoose.connection;
+    return cachedDb;
+}
+
+// Middleware to ensure DB connection
+app.use(async (req, res, next) => {
+    try {
+        await connectToDatabase();
+        next();
+    } catch (err) {
+        res.status(500).json({ error: 'Database connection failed' });
+    }
+});
 
 // --- API Endpoints ---
 
@@ -62,10 +77,9 @@ app.post('/api/predictions/bulk', async (req, res) => {
   }
 });
 
-// Bulk Update Predictions
 app.post('/api/predictions/bulk-update', async (req, res) => {
     try {
-        const { edits } = req.body; // { id: { field: val }, ... }
+        const { edits } = req.body;
         const updatePromises = Object.entries(edits).map(([id, data]) => 
             Prediction.findByIdAndUpdate(id, data, { new: true })
         );
@@ -101,7 +115,7 @@ app.post('/api/channels', async (req, res) => {
     await newChannel.save();
     res.status(201).json(newChannel);
   } catch (err) {
-    if (err.code === 11000) return res.status(400).json({ message: `Channel with name '${req.body.name}' already exists.` });
+    if (err.code === 11000) return res.status(400).json({ message: `Channel already exists.` });
     res.status(400).json({ error: err.message });
   }
 });
@@ -111,7 +125,7 @@ app.delete('/api/channels/:name', async (req, res) => {
     const channelName = req.params.name;
     await Prediction.deleteMany({ channel: channelName });
     await Channel.findOneAndDelete({ name: channelName });
-    res.json({ message: `Channel '${channelName}' deleted.` });
+    res.json({ message: `Channel deleted.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -132,8 +146,9 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-    res.send('IPL Prediction Tracker Backend API Is Active.');
-});
+// Run Locally, or as a Serverless function.
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+module.exports = app;
