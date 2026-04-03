@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { API_BASE_URL } from '../config';
 
 const Analytics = () => {
   const { predictions, refreshData, loading } = useData();
@@ -42,7 +43,7 @@ const Analytics = () => {
     if (editCount === 0) return;
 
     try {
-        const response = await fetch('http://localhost:5000/api/predictions/bulk-update', {
+        const response = await fetch(`${API_BASE_URL}/api/predictions/bulk-update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ edits: localEdits }),
@@ -61,7 +62,7 @@ const Analytics = () => {
     const edits = localEdits[id];
     if (!edits) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/predictions/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/predictions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(edits),

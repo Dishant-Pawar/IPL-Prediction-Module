@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
+import { API_BASE_URL } from '../config';
 
 const AddEntry = () => {
   const { channels, refreshData, loading } = useData();
@@ -48,7 +49,7 @@ const AddEntry = () => {
     if (entries.length === 0) return alert('Please set at least one prediction.');
 
     try {
-      const response = await fetch('http://localhost:5000/api/predictions/bulk', {
+      const response = await fetch(`${API_BASE_URL}/api/predictions/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entries),

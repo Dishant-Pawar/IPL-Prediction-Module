@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 
 const DataContext = createContext();
 
@@ -17,9 +18,9 @@ export const DataProvider = ({ children }) => {
   const fetchData = async () => {
     try {
       const [statsRes, predRes, chanRes] = await Promise.all([
-        fetch('http://localhost:5000/api/stats'),
-        fetch('http://localhost:5000/api/predictions'),
-        fetch('http://localhost:5000/api/channels')
+        fetch(`${API_BASE_URL}/api/stats`),
+        fetch(`${API_BASE_URL}/api/predictions`),
+        fetch(`${API_BASE_URL}/api/channels`)
       ]);
 
       const statsData = await statsRes.json();

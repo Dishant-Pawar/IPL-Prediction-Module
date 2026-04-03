@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
+import { API_BASE_URL } from '../config';
 
 const ManageChannels = () => {
   const { channels, refreshData, loading } = useData();
@@ -12,7 +13,7 @@ const ManageChannels = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/channels', {
+      const response = await fetch(`${API_BASE_URL}/api/channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newChannel.trim() }),
@@ -32,7 +33,7 @@ const ManageChannels = () => {
   const handleDeleteChannel = async (name) => {
     if (!window.confirm(`Terminate Source Steam: ${name}? All linked historical data points will be permanently purged.`)) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/channels/${name}`, {
+      const response = await fetch(`${API_BASE_URL}/api/channels/${name}`, {
         method: 'DELETE',
       });
       if (response.ok) {
