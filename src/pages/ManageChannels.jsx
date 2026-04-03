@@ -3,22 +3,26 @@ import { useData } from '../context/DataContext';
 
 const ManageChannels = () => {
   const { channels, refreshData, loading } = useData();
-  const [formData, setFormData] = useState({ name: '', sourceType: 'Telegram Feed' });
+  const [newChannel, setNewChannel] = useState('');
+  const [error, setError] = useState('');
 
-  const handleAddChannel = async () => {
-    if (!formData.name) return;
+  const handleAddChannel = async (e) => {
+    e.preventDefault();
+    if (!newChannel.trim()) return;
+    setError('');
+
     try {
       const response = await fetch('http://localhost:5000/api/channels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name: newChannel.trim() }),
       });
       if (response.ok) {
-        setFormData({ name: '', sourceType: 'Telegram Feed' });
-        refreshData(); // Global sync
+        setNewChannel('');
+        refreshData();
       } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
+        const data = await response.json();
+        setError(data.message || 'Error creating channel');
       }
     } catch (err) {
       console.error('Error adding channel:', err);
@@ -26,19 +30,13 @@ const ManageChannels = () => {
   };
 
   const handleDeleteChannel = async (name) => {
-    if (!window.confirm(`Are you sure you want to delete '${name}' and all its associated records? This cannot be undone.`)) return;
-    
+    if (!window.confirm(`Terminate Source Steam: ${name}? All linked historical data points will be permanently purged.`)) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/channels/${encodeURIComponent(name)}`, {
+      const response = await fetch(`http://localhost:5000/api/channels/${name}`, {
         method: 'DELETE',
       });
-      
       if (response.ok) {
-        alert(`${name} and all associated records deleted successfully.`);
-        refreshData(); // Sync everything
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
+        refreshData();
       }
     } catch (err) {
       console.error('Error deleting channel:', err);
@@ -46,100 +44,90 @@ const ManageChannels = () => {
   };
 
   return (
-    <>
-      <header className="w-full h-16 sticky top-0 z-40 bg-[#f9f9ff] shadow-sm flex items-center justify-between px-8">
-        <div className="flex items-center">
-          <span className="font-headline text-xl tracking-tight font-bold text-[#19398a]">Channel Repository</span>
-        </div>
-        <div className="flex items-center gap-4">
-           <button className="material-symbols-outlined text-[#19398a] p-2 hover:bg-[#f0f3ff] rounded-full transition-colors">notifications</button>
-           <div className="h-8 w-8 rounded-full bg-primary-container overflow-hidden ring-2 ring-[#dbe1ff]">
-               <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDixRxPA3y35u5PfZQBPGFtHIULze_wLlwEt7KODkpDljdqUTLUyVLMgqtLUHbVeimCYVR-OSHtwaRoO36XuRfem88PnAmOFSjno_xDQv_QjK6S95MeWDaBwQYRFmtvfDHVxi0ElqMx8fh2q47y2Mn_nMdhHaXUXBTIFAr3Fbys8gc1s2wuwGezXFr7JvoIuyPB0JleehgPj9yI4DF22Ga4AAKcyUZmBGfgN4nPdZytAl2ZMrwjGRbKM3LnIcfAYAYoRUqAdMflAiw" alt="Profile"/>
-            </div>
+    <div className="min-h-full pb-16">
+      <header className="w-full h-16 sticky top-0 z-40 bg-[#f9f9ff]/90 backdrop-blur-md flex items-center justify-between px-6 md:px-8 border-b border-outline-variant/10">
+        <h2 className="font-headline text-lg md:text-xl font-black tracking-tighter text-[#19398a] uppercase italic">Channel Repository</h2>
+        <div className="flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full bg-secondary shadow-[0_0_8px_#39edca]" />
+          <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em] hidden sm:block">Source Stream: ONLINE</span>
         </div>
       </header>
 
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <section className="lg:col-span-1">
-            <div className="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(18,28,43,0.06)] h-full border border-outline-variant/10">
-              <h3 className="font-headline font-bold text-lg mb-6">Provision New Source</h3>
-              <div className="space-y-4">
-                <input 
-                  className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-primary-container text-sm font-semibold" 
-                  placeholder="Channel Name..." 
-                  type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-                <select 
-                  className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-primary-container text-sm font-semibold"
-                  value={formData.sourceType}
-                  onChange={(e) => setFormData({ ...formData, sourceType: e.target.value })}
-                >
-                  <option>Telegram Feed</option>
-                  <option>WhatsApp Group</option>
-                  <option>Internal API</option>
-                </select>
-                <p className="text-[9px] text-outline font-bold uppercase tracking-widest px-1">Note: Channel names must be unique.</p>
-                <button 
-                  onClick={handleAddChannel}
-                  className="w-full mt-2 bg-primary text-white font-headline font-black py-3 px-6 rounded-xl shadow-md active:scale-95 transition-all text-sm uppercase tracking-widest"
-                >
-                  Confirm Provision
-                </button>
+      <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-10">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-4 bg-surface-container-lowest p-8 md:p-10 rounded-[3rem] shadow-sm border border-outline-variant/10 sticky top-24">
+            <h3 className="font-headline font-black text-2xl text-on-surface mb-8 uppercase tracking-tighter italic">Provision New Stream</h3>
+            <form onSubmit={handleAddChannel} className="space-y-6">
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black text-outline uppercase tracking-[0.3em] block px-1">Source Name Identifier</label>
+                 <input 
+                  className={`w-full bg-surface-container-low border-none rounded-2xl py-5 px-6 text-xs font-black ring-1 ${error ? 'ring-error animate-shake' : 'ring-outline-variant/10 focus:ring-primary/50'} transition-all`} 
+                  placeholder="TELEGRAM_SOURCE_01..." 
+                  value={newChannel} 
+                  onChange={(e) => {setNewChannel(e.target.value); setError('');}} 
+                 />
+                 {error && (
+                    <p className="text-error text-[8px] font-black uppercase tracking-widest px-1 animate-fade-in">{error}</p>
+                 )}
               </div>
+              <button 
+                type="submit" 
+                className="w-full bg-[#19398a] hover:bg-primary text-white font-black py-5 rounded-2xl shadow-xl hover:shadow-primary/20 active:scale-95 transition-all text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 group"
+              >
+                <span className="material-symbols-outlined text-sm group-hover:rotate-180 transition-transform duration-500">add_circle</span>
+                Initialize Provisioning
+              </button>
+            </form>
+            <div className="mt-10 p-6 bg-primary/5 border border-primary/10 rounded-2.5rem space-y-3">
+               <span className="text-[8px] font-black text-primary uppercase tracking-[0.4em] italic leading-none">Security Protocol</span>
+               <p className="text-[9px] text-[#19398a]/60 font-medium font-headline leading-relaxed">System requires unique nomenclature for identifier mapping. Avoid duplicates to maintain link integrity.</p>
             </div>
-          </section>
+          </div>
 
-          <section className="lg:col-span-2">
-            <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
-              <div className="px-6 py-5 bg-surface-container-low flex justify-between items-center">
-                <h3 className="font-headline font-bold text-sm uppercase tracking-widest text-primary">Active Distribution</h3>
-                <span className="text-xs font-bold text-outline">{channels.length} Source Identifiers</span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="text-left border-b border-outline-variant/15 bg-surface-container-low/20">
-                      <th className="px-6 py-4 text-xs font-black text-outline uppercase tracking-wider">Identity</th>
-                      <th className="px-6 py-4 text-xs font-black text-outline uppercase tracking-wider text-center">Data Count</th>
-                      <th className="px-6 py-4 text-xs font-black text-outline uppercase tracking-wider text-right">Administrative</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10">
-                    {channels.map((chan) => (
-                      <tr key={chan._id} className="hover:bg-surface-container-low/30 transition-colors group">
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-black text-on-surface">{chan.name}</span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-on-surface font-black text-center">{chan.entriesCount}</td>
-                        <td className="px-6 py-4 text-right">
-                           <button 
-                              onClick={() => handleDeleteChannel(chan.name)}
-                              className="p-2 text-outline hover:text-error transition-all"
-                              title="Delete source"
-                           >
-                              <span className="material-symbols-outlined text-md">delete</span>
-                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {loading && channels.length === 0 && (
-                      <tr>
-                        <td colSpan="3" className="px-6 py-10 text-center text-outline text-sm italic">
-                          Synchronizing with repository...
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          <div className="lg:col-span-8 bg-surface-container-lowest rounded-[3rem] shadow-sm border border-outline-variant/10 overflow-hidden">
+            <div className="px-8 py-6 bg-surface-container-low/50 border-b border-outline-variant/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+               <div>
+                  <h3 className="font-headline font-black text-xl text-on-surface uppercase tracking-tighter italic leading-none">Active Distributed Sources</h3>
+                  <p className="text-[8px] font-black text-outline uppercase tracking-widest mt-1 italic">Repository Matrix Stream</p>
+               </div>
+               <span className="text-[9px] font-black text-secondary bg-secondary-container px-4 py-1.5 rounded-full ring-1 ring-secondary/20 uppercase tracking-widest">{channels.length} Nodes Active</span>
             </div>
-          </section>
-        </div>
+            
+            <div className="divide-y divide-outline-variant/5">
+              {channels.map((chan) => (
+                <div key={chan._id} className="p-8 hover:bg-primary/5 transition-all group flex flex-col sm:flex-row justify-between items-center gap-6">
+                  <div className="flex items-center gap-6 text-center sm:text-left">
+                    <div className="h-14 w-14 rounded-2.5rem bg-surface-container-low flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500 ring-1 ring-outline-variant/10 group-hover:ring-primary/20">
+                      <span className="material-symbols-outlined text-2xl font-black">podcasts</span>
+                    </div>
+                    <div>
+                      <h4 className="font-black text-lg text-on-surface uppercase tracking-tighter group-hover:text-primary transition-all italic">{chan.name}</h4>
+                      <div className="flex flex-wrap justify-center sm:justify-start gap-3 mt-1.5">
+                         <span className="text-[9px] font-black text-outline uppercase tracking-widest bg-surface-container-low/50 px-2.5 py-0.5 rounded italic opacity-60">Verified Link</span>
+                         <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em] font-headline">{chan.entriesCount || 0} Data Operations</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteChannel(chan.name)}
+                    className="w-full sm:w-auto px-6 py-3 border border-outline-variant/10 group-hover:border-error/20 hover:bg-error/10 text-outline group-hover:text-error/60 hover:text-error rounded-xl text-[10px] font-black uppercase tracking-widest transition-all inline-flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">link_off</span>
+                    Terminate Access
+                  </button>
+                </div>
+              ))}
+              {channels.length === 0 && (
+                <div className="py-24 text-center px-10 space-y-4">
+                  <span className="material-symbols-outlined text-outline/20 text-6xl">cloud_off</span>
+                  <p className="text-xs text-outline/40 italic uppercase tracking-[0.4em]">Repository currently de-synchronized</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
       </div>
-    </>
+    </div>
   );
 };
 
