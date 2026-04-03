@@ -15,57 +15,54 @@ const Login = ({ onAuthenticate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050508] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Deep Glows */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[60%] h-[60%] bg-[#19398a]/30 rounded-full blur-[160px]" />
-        <div className="absolute -bottom-40 -right-40 w-[60%] h-[60%] bg-[#39edca]/10 rounded-full blur-[160px]" />
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary rounded-full blur-[120px]" />
       </div>
 
-      <div className="w-full max-w-md z-10">
-        <div className="bg-[#121218]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-[0_24px_80px_rgba(0,0,0,0.5)] relative overflow-hidden">
-          {/* Subtle top edge highlighting */}
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          
-          <div className="text-center mb-12">
-             <div className="inline-flex items-center justify-center h-20 w-20 bg-white/5 rounded-3xl mb-8 border border-white/10 shadow-inner">
-                <span className="material-symbols-outlined text-white text-4xl font-black">security</span>
+      <div className="w-full max-w-md z-10 transition-all duration-500">
+        <div className="bg-surface-container-lowest/50 backdrop-blur-xl border border-white/10 p-8 md:p-10 rounded-[2rem] shadow-2xl relative">
+          <div className="text-center mb-10">
+             <div className="inline-flex items-center justify-center h-16 w-16 bg-primary/10 rounded-2xl mb-6 ring-1 ring-primary/20">
+                <span className="material-symbols-outlined text-primary text-3xl font-black">security</span>
              </div>
-             <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic leading-none mb-4">Authority Access</h1>
-             <p className="text-white/60 text-[11px] font-black uppercase tracking-[0.4em]">Secure Synchronization Portal</p>
+             <h1 className="text-3xl font-black text-white uppercase tracking-tighter italic">Authority Access</h1>
+             <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Matrix Synchronization Secure Link</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative group">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/40 group-focus-within:text-white transition-colors">lock</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20 group-focus-within:text-primary transition-colors">lock</span>
               <input 
                 type="password" 
                 placeholder="Enter Secure Identifier..."
-                className={`w-full bg-white/5 border-2 ${error ? 'border-error/80 animate-shake bg-error/5' : 'border-white/5 focus:border-white/20 group-focus-within:bg-white/10'} text-white rounded-2xl py-5 pl-14 pr-6 outline-none transition-all placeholder:text-white/20 font-black text-sm tracking-widest`}
+                className={`w-full bg-white/5 border ${error ? 'border-error animate-shake' : 'border-white/10'} focus:border-primary/50 text-white rounded-xl py-4 pl-12 pr-4 outline-none transition-all placeholder:text-white/10 font-bold text-sm`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               {error && (
-                <p className="text-error font-black text-[10px] uppercase tracking-widest absolute -bottom-6 left-2">Verification Error: Unauthorized Identity</p>
+                <p className="text-error text-[9px] font-black uppercase tracking-widest absolute -bottom-5 left-1 animate-fade-in">Verification Failed: Protocol Breach</p>
               )}
             </div>
 
             <button 
               type="submit"
-              className="w-full bg-white text-[#050508] font-black py-5 rounded-2xl shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 relative group overflow-hidden"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
             >
-              <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity" />
-              <span className="material-symbols-outlined text-lg">verified_user</span>
-              Initialize Protocol
+              <span className="material-symbols-outlined text-sm">verified_user</span>
+              Initialize Authority Profile
             </button>
           </form>
 
-          <footer className="mt-14 pt-8 border-t border-white/5 text-center">
-             <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.3em] italic leading-relaxed">
-                System Integrity Verification Matrix <br/>
-                <span className="text-white/10">Logs recorded at authorized terminal</span>
+          <div className="mt-10 flex flex-col items-center gap-4">
+             <span className="h-px w-10 bg-white/10" />
+             <p className="text-white/20 text-[8px] font-black text-center leading-relaxed tracking-widest uppercase italic">
+                System Integrity Verification Active <br/>
+                Unauthorized access will be logged in repository
              </p>
-          </footer>
+          </div>
         </div>
       </div>
     </div>

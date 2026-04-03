@@ -1,95 +1,79 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Outfit", sans-serif;
-  --font-headline: "Manrope", "Outfit", sans-serif;
+  --color-on-secondary-fixed: #002204;
+  --color-tertiary: #5a0005;
+  --color-error-container: #ffdad6;
+  --color-tertiary-fixed: #ffdad6;
+  --color-surface-container-low: #f0f3ff;
+  --color-background: #f9f9ff;
+  --color-on-secondary-container: #217128;
+  --color-surface-container-highest: #d9e3f8;
+  --color-on-tertiary-fixed: #410003;
+  --color-on-background: #121c2b;
+  --color-outline: #757683;
+  --color-surface-container: #e7eeff;
+  --color-on-primary-fixed: #00174d;
+  --color-tertiary-fixed-dim: #ffb4ac;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-fixed-variant: #234192;
+  --color-primary-fixed: #dbe1ff;
+  --color-on-tertiary-fixed-variant: #93000e;
+  --color-surface-dim: #d0daef;
+  --color-on-error-container: #93000a;
+  --color-on-tertiary-container: #ff887d;
+  --color-primary: #00236a;
+  --color-on-surface-variant: #444651;
+  --color-on-secondary-fixed-variant: #005312;
+  --color-primary-container: #19398a;
+  --color-surface-tint: #3e5aac;
+  --color-on-error: #ffffff;
+  --color-inverse-primary: #b5c4ff;
+  --color-secondary-fixed: #a3f69c;
+  --color-on-primary: #ffffff;
+  --color-surface: #f9f9ff;
+  --color-on-surface: #121c2b;
+  --color-outline-variant: #c4c6d3;
+  --color-surface-variant: #d9e3f8;
+  --color-on-secondary: #ffffff;
+  --color-inverse-on-surface: #ebf1ff;
+  --color-secondary-fixed-dim: #88d982;
+  --color-on-primary-container: #8ca7fe;
+  --color-inverse-surface: #273141;
+  --color-surface-bright: #f9f9ff;
+  --color-on-tertiary: #ffffff;
+  --color-secondary: #1b6d24;
+  --color-primary-fixed-dim: #b5c4ff;
+  --color-error: #ba1a1a;
+  --color-tertiary-container: #84000c;
+  --color-secondary-container: #a0f399;
+  --color-surface-container-high: #dfe8fe;
 
-  /* Global Colors */
-  --color-primary: #19398a;
-  --color-primary-container: #dbe1ff;
-  --color-on-primary-container: #00174b;
-  
-  --color-secondary: #39edca;
-  --color-secondary-container: #005144;
-  --color-on-secondary-container: #b3f4e2;
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
 
-  --color-tertiary: #ffb4a9;
-  --color-tertiary-container: #930006;
-  
-  --color-error: #ffb4ab;
-  --color-on-error: #690005;
-
-  /* Theme-specific tokens */
-  --color-surface-container-lowest: var(--bg-lowest);
-  --color-surface-container-low: var(--bg-low);
-  --color-surface-container: var(--bg-normal);
-  --color-on-surface: var(--text-normal);
-  --color-outline: var(--text-muted);
-  --color-outline-variant: var(--border-normal);
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
 }
 
-:root {
-  --bg-app: #f9f9ff;
-  --bg-lowest: #ffffff;
-  --bg-low: #f0f3ff;
-  --bg-normal: #e3e7f5;
-  --text-normal: #191c20;
-  --text-muted: #44474e;
-  --border-normal: #c4c6d0;
-  
-  --sidebar-bg: #19398a;
-  --sidebar-text: #ffffff;
-  --sidebar-active: rgba(255, 255, 255, 0.1);
+@utility material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-.dark {
-  --bg-app: #0f111a;
-  --bg-lowest: #1a1c26;
-  --bg-low: #242736;
-  --bg-normal: #2d3142;
-  --text-normal: #e2e2e6;
-  --text-muted: #90909a;
-  --border-normal: #44474e;
-  
-  --sidebar-bg: #0a0c14;
-  --sidebar-text: #e2e2e6;
-  --sidebar-active: rgba(255, 255, 255, 0.05);
+@utility chart-gradient-primary {
+  background: linear-gradient(180deg, #19398a 0%, #dbe1ff 100%);
 }
 
+@utility chart-gradient-secondary {
+  background: linear-gradient(180deg, #1b6d24 0%, #a0f399 100%);
+}
+
+/* Global resets and custom symbols integration */
 @layer base {
-  body {
-    @apply bg-[var(--bg-app)] text-[var(--text-normal)] font-sans transition-colors duration-300;
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
-}
-
-/* Custom Utilities */
-.chart-gradient-primary {
-  background: linear-gradient(180deg, #19398a 0%, #4c66ff 100%);
-}
-
-.chart-gradient-secondary {
-  background: linear-gradient(180deg, #005144 0%, #39edca 100%);
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.animate-shake {
-  animation: shake 0.2s ease-in-out 0s 2;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-pulse-slow {
-  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

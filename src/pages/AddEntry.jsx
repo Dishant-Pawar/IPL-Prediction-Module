@@ -1,110 +1,208 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 
 const AddEntry = () => {
-  const { channels, refreshData } = useData();
-  const [matchId, setMatchId] = useState('');
-  const [matchName, setMatchName] = useState('MI VS CSK');
-  const [matchDate, setMatchDate] = useState(new Date().toISOString().split('T')[0]);
-  const [forecasts, setForecasts] = useState({});
+  const { channels, refreshData, loading } = useData();
+  const [commonData, setCommonData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    team1: '',
+    team2: '',
+    matchName: '',
+  });
 
-  const handleToggle = (channel, field, value) => {
-    setForecasts(prev => {
-      const current = prev[channel] ? prev[channel][field] : null;
-      return { ...prev, [channel]: { ...(prev[channel] || {}), [field]: current === value ? null : value } };
-    });
+  // predictionMap: { [channelName]: { tossPrediction: 'Win' | 'Loss' | null, matchPrediction: 'Win' | 'Loss' | null } }
+  const [predictionMap, setPredictionMap] = useState({});
+
+  // Initialize prediction map when channels load
+  useEffect(() => {
+    if (channels && channels.length > 0) {
+      const initialMap = {};
+      channels.forEach(chan => {
+        initialMap[chan.name] = { tossPrediction: null, matchPrediction: null };
+      });
+      setPredictionMap(initialMap);
+    }
+  }, [channels]);
+
+  const togglePrediction = (channelName, type, val) => {
+    setPredictionMap(prev => ({
+      ...prev,
+      [channelName]: {
+        ...prev[channelName],
+        [type]: prev[channelName][type] === val ? null : val // Toggle null if clicked again
+      }
+    }));
   };
 
-  const handleCommit = async () => {
-    const entries = Object.entries(forecasts)
-      .filter(([_, data]) => data.tossPrediction || data.matchPrediction)
-      .map(([channel, data]) => ({ channel, matchName, date: new Date(matchDate), tossPrediction: data.tossPrediction || 'Loss', matchPrediction: data.matchPrediction || 'Loss', matchId }));
-    
-    if (entries.length === 0) return alert('No forecasts selected.');
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    if (!commonData.team1 || !commonData.team2) return alert('Please enter team details.');
+
+    // Only include channels that have at least one prediction set
+    const entries = Object.entries(predictionMap)
+      .filter(([_, data]) => data.tossPrediction !== null || data.matchPrediction !== null)
+      .map(([channelName, data]) => ({
+        ...commonData,
+        channel: channelName,
+        tossPrediction: data.tossPrediction || 'N/A',
+        matchPrediction: data.matchPrediction || 'N/A',
+      }));
+
+    if (entries.length === 0) return alert('Please set at least one prediction.');
+
     try {
-      const response = await fetch('http://localhost:5000/api/predictions/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entries) });
-      if (response.ok) { refreshData(); setForecasts({}); alert(`Synchronized ${entries.length} data points!`); }
-    } catch (err) { console.error(err); }
+      const response = await fetch('http://localhost:5000/api/predictions/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entries),
+      });
+      if (response.ok) {
+        setCommonData({
+            date: new Date().toISOString().split('T')[0],
+            team1: '',
+            team2: '',
+            matchName: '',
+        });
+        // Reset map
+        const resetMap = {};
+        channels.forEach(chan => resetMap[chan.name] = { tossPrediction: null, matchPrediction: null });
+        setPredictionMap(resetMap);
+        
+        refreshData();
+        alert(`Successfully synchronized ${entries.length} predictions to the repository!`);
+      }
+    } catch (err) {
+      console.error('Error in bulk submit:', err);
+    }
   };
+
+  const teams = [
+    { name: 'MI', color: '#004BA0' }, { name: 'CSK', color: '#FFFF0C' }, { name: 'RCB', color: '#2B2A29' },
+    { name: 'KKR', color: '#3A225D' }, { name: 'DC', color: '#0057A2' }, { name: 'RR', color: '#254AA5' },
+    { name: 'SRH', color: '#F7A721' }, { name: 'PBKS', color: '#ED1B24' }, { name: 'GT', color: '#0B4973' },
+    { name: 'LSG', color: '#D3E0E9' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-app)]">
-      <header className="hidden lg:flex w-full h-16 sticky top-0 z-40 bg-[var(--bg-app)]/80 backdrop-blur-md items-center justify-between px-8 shadow-sm border-b border-outline-variant/10">
-        <h2 className="font-headline text-xl font-black tracking-tighter text-secondary uppercase leading-none italic uppercase">Entry Synchronization</h2>
-        <div className="h-8 w-8 rounded-full bg-primary-container ring-1 ring-outline-variant/30 overflow-hidden">
-             <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDixRxPA3y35u5PfZQBPGFtHIULze_wLlwEt7KODkpDljdqUTLUyVLMgqtLUHbVeimCYVR-OSHtwaRoO36XuRfem88PnAmOFSjno_xDQv_QjK6S95MeWDaBwQYRFmtvfDHVxi0ElqMx8fh2q47y2Mn_nMdhHaXUXBTIFAr3Fbys8gc1s2wuwGezXFr7JvoIuyPB0JleehgPj9yI4DF22Ga4AAKcyUZmBGfgN4nPdZytAl2ZMrwjGRbKM3LnIcfAYAYoRUqAdMflAiw" alt="Analyst"/>
+    <>
+       <header className="w-full h-16 sticky top-0 z-40 bg-[#f9f9ff] flex items-center justify-between px-6 shadow-sm">
+        <div className="flex items-center">
+          <span className="text-xl font-black tracking-tighter text-[#19398a] font-headline uppercase">Matrix Synchronizer</span>
+        </div>
+        <div className="flex items-center space-x-4">
+             <div className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+             <span className="text-xs font-black text-outline uppercase tracking-widest">Repository Live</span>
         </div>
       </header>
 
-      <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-5xl mx-auto overflow-x-hidden">
-        {/* Global Parameters - Now Responsive Stack/Flex */}
-        <section className="bg-surface-container-lowest p-6 md:p-8 rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden">
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-              <div className="space-y-2 group">
-                 <label className="text-[10px] font-black text-outline uppercase tracking-widest pl-1">Cycle Date</label>
-                 <input className="w-full bg-surface-container-low border border-outline-variant/10 p-3.5 rounded-xl text-xs font-black text-on-surface focus:border-secondary transition-all outline-none uppercase" type="date" value={matchDate} onChange={(e)=>setMatchDate(e.target.value)} />
-              </div>
-              <div className="space-y-2 group">
-                 <label className="text-[10px] font-black text-outline uppercase tracking-widest pl-1">Teams Identification</label>
-                 <input className="w-full bg-surface-container-low border border-outline-variant/10 p-3.5 rounded-xl text-xs font-black text-on-surface focus:border-secondary transition-all outline-none uppercase tracking-widest" placeholder="MI VS CSK" type="text" value={matchName} onChange={(e)=>setMatchName(e.target.value)} />
-              </div>
-              <div className="space-y-2 group">
-                 <label className="text-[10px] font-black text-outline uppercase tracking-widest pl-1">Match UID (Optional)</label>
-                 <input className="w-full bg-surface-container-low border border-outline-variant/10 p-3.5 rounded-xl text-xs font-black text-on-surface focus:border-secondary transition-all outline-none uppercase" placeholder="MATCH_001" type="text" value={matchId} onChange={(e)=>setMatchId(e.target.value)} />
-              </div>
-           </div>
+      <div className="p-8 max-w-6xl mx-auto space-y-8">
+        <section className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm border border-outline-variant/10">
+            <h2 className="text-xl font-black text-on-surface mb-6 uppercase tracking-tighter italic">Global Parameters</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="space-y-1">
+                   <label className="text-[9px] font-black text-outline uppercase tracking-widest block px-1">Cycle Date</label>
+                   <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary-container text-xs font-black" type="date" value={commonData.date} onChange={(e) => setCommonData({ ...commonData, date: e.target.value })} />
+                </div>
+                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                     <label className="text-[9px] font-black text-outline uppercase tracking-widest block px-1">Home Entity</label>
+                     <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-xs font-black" placeholder="MI..." value={commonData.team1} onChange={(e) => setCommonData({ ...commonData, team1: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[9px] font-black text-outline uppercase tracking-widest block px-1">Away Entity</label>
+                     <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-xs font-black" placeholder="CSK..." value={commonData.team2} onChange={(e) => setCommonData({ ...commonData, team2: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[9px] font-black text-outline uppercase tracking-widest block px-1">Match Identity</label>
+                     <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-xs font-black" placeholder="Qualifier 1..." value={commonData.matchName} onChange={(e) => setCommonData({ ...commonData, matchName: e.target.value })} />
+                  </div>
+                </div>
+            </div>
+            <div className="grid grid-cols-10 gap-1 mt-6">
+                {teams.map(team => (
+                    <button 
+                        key={team.name}
+                        onClick={() => {
+                            if (!commonData.team1) setCommonData({ ...commonData, team1: team.name });
+                            else if (!commonData.team2 && commonData.team1 !== team.name) setCommonData({ ...commonData, team2: team.name, matchName: `${commonData.team1} vs ${team.name}` });
+                        }}
+                        className="h-10 rounded-md bg-surface-container-low/50 hover:bg-surface-container-low border border-outline-variant/5 text-[9px] font-black text-on-surface transition-all active:scale-95"
+                    >{team.name}</button>
+                ))}
+            </div>
         </section>
 
-        {/* Sync Table - Responsive Scroll */}
-        <section className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden">
-           <div className="px-6 md:px-8 py-5 md:py-6 bg-surface-container-low border-b border-outline-variant/10 flex justify-between items-center">
-              <h3 className="font-headline font-black text-sm uppercase tracking-widest text-secondary italic">Source Stream Synchronization</h3>
-              <span className="text-[9px] font-black text-outline/40 uppercase italic">{channels.length} Nodes</span>
-           </div>
-           
-           <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                 <thead>
-                    <tr className="bg-surface-container-low/30 border-b border-outline-variant/5">
-                       <th className="px-6 md:px-10 py-4 md:py-5 text-[9px] font-black text-outline uppercase tracking-tighter">Source Identity</th>
-                       <th className="px-6 md:px-10 py-4 md:py-5 text-[9px] font-black text-outline uppercase tracking-tighter text-center">Toss Outcome</th>
-                       <th className="px-6 md:px-10 py-4 md:py-5 text-[9px] font-black text-outline uppercase tracking-tighter text-center">Match Outcome</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-outline-variant/10">
-                    {channels.map((chan) => (
-                       <tr key={chan._id} className="hover:bg-surface-container-low/20 transition-all group">
-                          <td className="px-6 md:px-10 py-4 md:py-5">
-                             <span className="text-xs md:text-sm font-black text-on-surface uppercase tracking-wider group-hover:text-secondary transition-colors">{chan.name}</span>
-                          </td>
-                          <td className="px-6 md:px-10 py-4 md:py-5">
-                             <div className="flex justify-center gap-1.5 md:gap-2">
-                                <button onClick={()=>handleToggle(chan.name, 'tossPrediction', 'Win')} className={`px-4 md:px-6 py-2 rounded-lg font-black text-[9px] transition-all ${forecasts[chan.name]?.tossPrediction === 'Win' ? 'bg-secondary text-primary shadow-lg ring-1 ring-secondary' : 'bg-surface-container-low text-outline/30 hover:text-outline'}`}>WIN</button>
-                                <button onClick={()=>handleToggle(chan.name, 'tossPrediction', 'Loss')} className={`px-4 md:px-6 py-2 rounded-lg font-black text-[9px] transition-all ${forecasts[chan.name]?.tossPrediction === 'Loss' ? 'bg-surface-container-high text-on-surface shadow-md ring-1 ring-outline' : 'bg-surface-container-low text-outline/30 hover:text-outline'}`}>LOSS</button>
-                             </div>
-                          </td>
-                          <td className="px-6 md:px-10 py-4 md:py-5">
-                             <div className="flex justify-center gap-1.5 md:gap-2">
-                                <button onClick={()=>handleToggle(chan.name, 'matchPrediction', 'Win')} className={`px-4 md:px-6 py-2 rounded-lg font-black text-[9px] transition-all ${forecasts[chan.name]?.matchPrediction === 'Win' ? 'bg-primary text-white shadow-xl ring-1 ring-primary' : 'bg-surface-container-low text-outline/30 hover:text-outline'}`}>WIN</button>
-                                <button onClick={()=>handleToggle(chan.name, 'matchPrediction', 'Loss')} className={`px-4 md:px-6 py-2 rounded-lg font-black text-[9px] transition-all ${forecasts[chan.name]?.matchPrediction === 'Loss' ? 'bg-surface-container-high text-on-surface shadow-md ring-1 ring-outline' : 'bg-surface-container-low text-outline/30 hover:text-outline'}`}>LOSS</button>
-                             </div>
-                          </td>
-                       </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
-
-           <div className="p-6 md:p-8 bg-surface-container-low/30 border-t border-outline-variant/10 text-center flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-[10px] font-black text-outline uppercase tracking-[0.2em] italic order-2 md:order-1 opacity-50">Global synchronization will push all active selections to the main repository.</p>
-              <button onClick={handleCommit} className="w-full md:w-auto bg-primary text-white font-black py-4 px-10 rounded-2xl shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-3 order-1 md:order-2">
-                 <span className="material-symbols-outlined text-lg">cloud_sync</span>
-                 Commit Global Synchronization
-              </button>
-           </div>
+        <section className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden">
+            <div className="px-6 py-5 bg-surface-container-low/50 border-b border-outline-variant/10 flex justify-between items-center">
+               <h3 className="text-sm font-black uppercase tracking-[0.15em] text-[#19398a]">Source Stream Synchronization</h3>
+               <span className="text-[10px] font-black text-outline uppercase">{channels.length} Identity Points Loaded</span>
+            </div>
+            <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse">
+                  <thead>
+                     <tr className="bg-surface-container-low/10">
+                        <th className="px-8 py-5 text-[10px] font-black text-outline uppercase tracking-widest">Stream Source Identity</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-outline uppercase tracking-widest text-center">Toss Forecast</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-outline uppercase tracking-widest text-center">Match Forecast</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10">
+                     {channels.map((chan) => {
+                        const pred = predictionMap[chan.name] || { tossPrediction: null, matchPrediction: null };
+                        return (
+                           <tr key={chan._id} className="hover:bg-surface-container-low/20 transition-colors">
+                              <td className="px-8 py-4">
+                                 <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-on-surface">{chan.name}</span>
+                                    <span className="text-[9px] text-outline font-black uppercase tracking-tighter italic">Status: Link Active</span>
+                                 </div>
+                              </td>
+                              <td className="px-8 py-4">
+                                 <div className="flex justify-center gap-2">
+                                    <button 
+                                       onClick={() => togglePrediction(chan.name, 'tossPrediction', 'Win')}
+                                       className={`px-4 py-2 rounded font-black text-[9px] transition-all ${pred.tossPrediction === 'Win' ? 'bg-secondary-container text-on-secondary-container ring-1 ring-secondary' : 'bg-surface-container-low text-outline/30 grayscale opacity-60'}`}
+                                    >WIN</button>
+                                    <button 
+                                       onClick={() => togglePrediction(chan.name, 'tossPrediction', 'Loss')}
+                                       className={`px-4 py-2 rounded font-black text-[9px] transition-all ${pred.tossPrediction === 'Loss' ? 'bg-surface-container-high text-on-surface ring-1 ring-outline' : 'bg-surface-container-low text-outline/30 grayscale opacity-60'}`}
+                                    >LOSS</button>
+                                 </div>
+                              </td>
+                              <td className="px-8 py-4">
+                                 <div className="flex justify-center gap-2">
+                                    <button 
+                                       onClick={() => togglePrediction(chan.name, 'matchPrediction', 'Win')}
+                                       className={`px-4 py-2 rounded font-black text-[9px] transition-all ${pred.matchPrediction === 'Win' ? 'bg-primary-container text-on-primary-container ring-1 ring-primary' : 'bg-surface-container-low text-outline/30 grayscale opacity-60'}`}
+                                    >WIN</button>
+                                    <button 
+                                       onClick={() => togglePrediction(chan.name, 'matchPrediction', 'Loss')}
+                                       className={`px-4 py-2 rounded font-black text-[9px] transition-all ${pred.matchPrediction === 'Loss' ? 'bg-surface-container-high text-on-surface ring-1 ring-outline' : 'bg-surface-container-low text-outline/30 grayscale opacity-60'}`}
+                                    >LOSS</button>
+                                 </div>
+                              </td>
+                           </tr>
+                        );
+                     })}
+                     {channels.length === 0 && (
+                        <tr>
+                            <td colSpan="3" className="px-8 py-16 text-center text-outline text-xs italic">No channel sources available for bulk synchronization.</td>
+                        </tr>
+                     )}
+                  </tbody>
+               </table>
+            </div>
+            <div className="p-8 bg-surface-container-low/10 border-t border-outline-variant/10">
+               <button 
+                  onClick={handleBulkSubmit}
+                  className="w-full bg-[#19398a] text-white font-black py-4 rounded-xl shadow-xl hover:shadow-[#19398a]/20 active:scale-[0.99] transition-all text-xs uppercase tracking-[0.2em]"
+               >
+                  Commit Global Synchronization
+               </button>
+            </div>
         </section>
       </div>
-    </div>
+    </>
   );
 };
 
