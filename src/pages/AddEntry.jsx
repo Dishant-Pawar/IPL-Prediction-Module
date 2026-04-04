@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
+import { useModal } from '../context/ModalContext';
 import API_BASE_URL from '../apiConfig';
+
 
 
 const AddEntry = () => {
   const { channels, refreshData, loading } = useData();
+  const { showAlert } = useModal();
+
   const [commonData, setCommonData] = useState({
     date: new Date().toISOString().split('T')[0],
     team1: '',
@@ -38,7 +42,8 @@ const AddEntry = () => {
 
   const handleBulkSubmit = async (e) => {
     e.preventDefault();
-    if (!commonData.team1 || !commonData.team2) return alert('Please enter team details.');
+    if (!commonData.team1 || !commonData.team2) return showAlert('Please enter team details.', 'Incomplete Data');
+
 
     // Only include channels that have at least one prediction set
     const entries = Object.entries(predictionMap)
@@ -50,7 +55,8 @@ const AddEntry = () => {
         matchPrediction: data.matchPrediction || 'N/A',
       }));
 
-    if (entries.length === 0) return alert('Please set at least one prediction.');
+    if (entries.length === 0) return showAlert('Please set at least one prediction.', 'Missing Strategy');
+
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/predictions/bulk`, {
@@ -71,8 +77,9 @@ const AddEntry = () => {
         setPredictionMap(resetMap);
         
         refreshData();
-        alert(`Successfully synchronized ${entries.length} predictions to the repository!`);
+        showAlert(`Successfully synchronized ${entries.length} predictions to the repository!`, 'Sync Complete');
       }
+
     } catch (err) {
       console.error('Error in bulk submit:', err);
     }

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useModal } from './ModalContext';
 import API_BASE_URL from '../apiConfig';
+
 
 
 const DataContext = createContext();
@@ -15,6 +17,8 @@ export const DataProvider = ({ children }) => {
   const [predictions, setPredictions] = useState([]);
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showAlert } = useModal();
+
 
   const fetchData = async () => {
     try {
@@ -30,7 +34,8 @@ export const DataProvider = ({ children }) => {
       const chanData = await chanRes.json();
 
       if (statsData && !statsData.error) setStats(statsData);
-      else if (statsData && (statsData.error || statsData.message)) alert(`Dashboard Load Issue: ${statsData.message || statsData.error}`);
+      else if (statsData && (statsData.error || statsData.message)) showAlert(`Dashboard Issue: ${statsData.message || statsData.error}`, 'System Health Warning');
+
 
       if (Array.isArray(predData)) setPredictions(predData);
       if (Array.isArray(chanData)) setChannels(chanData);
@@ -38,9 +43,10 @@ export const DataProvider = ({ children }) => {
 
     } catch (err) {
       console.error('Error fetching global data:', err);
-      alert(`Network Fault: ${err.message}`);
+      showAlert(`Network Fault: ${err.message}`, 'Connection Failed');
       setLoading(false);
     }
+
 
   };
 

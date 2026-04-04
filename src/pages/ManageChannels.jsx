@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
+import { useModal } from '../context/ModalContext';
 import API_BASE_URL from '../apiConfig';
+
 
 
 const ManageChannels = () => {
   const { channels, refreshData, loading } = useData();
+  const { showAlert, showConfirm } = useModal();
+
   const [formData, setFormData] = useState({ name: '', sourceType: 'Telegram Feed' });
 
   const handleAddChannel = async () => {
@@ -20,35 +24,43 @@ const ManageChannels = () => {
         refreshData(); // Global sync
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.message || errorData.error || 'Unknown server error'}`);
+        showAlert(errorData.message || errorData.error || 'Unknown server error', 'Provisioning Failure');
+
       }
 
     } catch (err) {
       console.error('Error adding channel:', err);
-      alert(`Network Error: ${err.message}. Check if your backend is running or if MONGODB_URI is set on Vercel.`);
+      showAlert(`${err.message}. Check if your backend is running or MONGODB_URI is set.`, 'Network Fault');
+
     }
 
   };
 
   const handleDeleteChannel = async (name) => {
-    if (!window.confirm(`Are you sure you want to delete '${name}' and all its associated records? This cannot be undone.`)) return;
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/channels/${encodeURIComponent(name)}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        alert(`${name} and all associated records deleted successfully.`);
-        refreshData(); // Sync everything
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
-      }
-    } catch (err) {
-      console.error('Error deleting channel:', err);
-    }
+    showConfirm(
+      `Are you sure you want to delete '${name}' and all its associated records? This cannot be undone.`,
+      async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/channels/${encodeURIComponent(name)}`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            showAlert(`${name} and all associated records deleted successfully.`, 'Update Successful');
+            refreshData(); 
+          } else {
+            const errorData = await response.json();
+            showAlert(`Error: ${errorData.message}`, 'Deletion Blocked');
+          }
+        } catch (err) {
+          console.error('Error deleting channel:', err);
+          showAlert(err.message, 'System Error');
+        }
+      },
+      null,
+      'Dangerous Operation'
+    );
   };
+
 
   return (
     <>

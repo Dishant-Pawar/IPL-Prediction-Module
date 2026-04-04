@@ -6,21 +6,26 @@ import Analytics from './pages/Analytics';
 import ManageChannels from './pages/ManageChannels';
 import AddEntry from './pages/AddEntry';
 import { DataProvider } from './context/DataContext';
+import { ModalProvider } from './context/ModalContext';
+
 
 function App() {
   return (
     <Router>
-      <DataProvider>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="channels" element={<ManageChannels />} />
-            <Route path="add" element={<AddEntry />} />
-          </Route>
-        </Routes>
-      </DataProvider>
+      <ModalProvider>
+        <DataProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="channels" element={<ManageChannels />} />
+              <Route path="add" element={<AddEntry />} />
+            </Route>
+          </Routes>
+        </DataProvider>
+      </ModalProvider>
     </Router>
+
   );
 }
 
