@@ -14,11 +14,15 @@ app.use(cors());
 let cachedDb = null;
 async function connectToDatabase() {
     if (cachedDb) return cachedDb;
+    if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is missing.');
+    }
     console.log('Connecting to MongoDB...');
     const db = await mongoose.connect(process.env.MONGODB_URI);
     cachedDb = db;
     return db;
 }
+
 
 // Middleware to connect to DB
 app.use(async (req, res, next) => {

@@ -11,4 +11,4 @@ const predictionSchema = new mongoose.Schema({
   profit: { type: Number, default: 0 },
 });
 
-module.exports = mongoose.model('Prediction', predictionSchema);
+module.exports = mongoose.models.Prediction || mongoose.model('Prediction', predictionSchema);
