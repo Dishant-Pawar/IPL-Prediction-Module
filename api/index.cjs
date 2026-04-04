@@ -2,8 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const Prediction = require('./models/Prediction');
-const Channel = require('./models/Channel');
+const Prediction = require('./models/Prediction.cjs');
+const Channel = require('./models/Channel.cjs');
+
 
 const app = express();
 app.use(express.json());
