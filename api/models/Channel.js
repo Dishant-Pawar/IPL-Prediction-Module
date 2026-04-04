@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const channelSchema = new mongoose.Schema({
   name: { type: String, unique: true, required: true },
@@ -8,4 +8,4 @@ const channelSchema = new mongoose.Schema({
   entriesCount: { type: Number, default: 0 },
 });
 
-module.exports = mongoose.models.Channel || mongoose.model('Channel', channelSchema);
+export default mongoose.models.Channel || mongoose.model('Channel', channelSchema);

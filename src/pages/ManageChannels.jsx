@@ -24,7 +24,9 @@ const ManageChannels = () => {
       }
     } catch (err) {
       console.error('Error adding channel:', err);
+      alert(`Network Error: ${err.message}. Check if your backend is running or if MONGODB_URI is set on Vercel.`);
     }
+
   };
 
   const handleDeleteChannel = async (name) => {

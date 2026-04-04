@@ -1,10 +1,9 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const Prediction = require('./models/Prediction.cjs');
-const Channel = require('./models/Channel.cjs');
-
+import 'dotenv/config';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import Prediction from './models/Prediction.js';
+import Channel from './models/Channel.js';
 
 const app = express();
 app.use(express.json());
@@ -23,7 +22,6 @@ async function connectToDatabase() {
     return db;
 }
 
-
 // Middleware to connect to DB
 app.use(async (req, res, next) => {
     try {
@@ -31,7 +29,7 @@ app.use(async (req, res, next) => {
         next();
     } catch (err) {
         console.error('Error connecting to database:', err);
-        res.status(500).json({ error: 'Database connection failure' });
+        res.status(500).json({ error: 'Database connection failure', details: err.message });
     }
 });
 
@@ -145,4 +143,4 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // For Vercel Serverless Function export
-module.exports = app;
+export default app;

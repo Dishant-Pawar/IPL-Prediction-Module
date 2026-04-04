@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const predictionSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
@@ -11,4 +11,4 @@ const predictionSchema = new mongoose.Schema({
   profit: { type: Number, default: 0 },
 });
 
-module.exports = mongoose.models.Prediction || mongoose.model('Prediction', predictionSchema);
+export default mongoose.models.Prediction || mongoose.model('Prediction', predictionSchema);
