@@ -29,10 +29,11 @@ export const DataProvider = ({ children }) => {
       const predData = await predRes.json();
       const chanData = await chanRes.json();
 
-      setStats(statsData);
-      setPredictions(predData);
-      setChannels(chanData);
+      if (statsData && !statsData.error) setStats(statsData);
+      if (Array.isArray(predData)) setPredictions(predData);
+      if (Array.isArray(chanData)) setChannels(chanData);
       setLoading(false);
+
     } catch (err) {
       console.error('Error fetching global data:', err);
       setLoading(false);

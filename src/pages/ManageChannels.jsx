@@ -20,8 +20,9 @@ const ManageChannels = () => {
         refreshData(); // Global sync
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
+        alert(`Error: ${errorData.message || errorData.error || 'Unknown server error'}`);
       }
+
     } catch (err) {
       console.error('Error adding channel:', err);
       alert(`Network Error: ${err.message}. Check if your backend is running or if MONGODB_URI is set on Vercel.`);

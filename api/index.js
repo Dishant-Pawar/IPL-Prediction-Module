@@ -29,8 +29,9 @@ app.use(async (req, res, next) => {
         next();
     } catch (err) {
         console.error('Error connecting to database:', err);
-        res.status(500).json({ error: 'Database connection failure', details: err.message });
+        res.status(500).json({ error: 'Database connection failure', message: err.message });
     }
+
 });
 
 // --- API Endpoints ---
@@ -40,8 +41,9 @@ app.get('/api/predictions', async (req, res) => {
     const predictions = await Prediction.find().sort({ date: -1 });
     res.json(predictions);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, message: err.message });
   }
+
 });
 
 app.post('/api/predictions', async (req, res) => {
@@ -101,8 +103,9 @@ app.get('/api/channels', async (req, res) => {
     const channels = await Channel.find();
     res.json(channels);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, message: err.message });
   }
+
 });
 
 app.post('/api/channels', async (req, res) => {
@@ -123,8 +126,9 @@ app.delete('/api/channels/:name', async (req, res) => {
     await Channel.findOneAndDelete({ name: channelName });
     res.json({ message: `Channel '${channelName}' deleted.` });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, message: err.message });
   }
+
 });
 
 app.get('/api/stats', async (req, res) => {
@@ -138,9 +142,15 @@ app.get('/api/stats', async (req, res) => {
     const recentLogs = await Prediction.find().sort({ date: -1 }).limit(5);
     res.json({ totalEntries, tossAccuracy, matchAccuracy, recentLogs });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, message: err.message });
   }
+
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
 });
 
 // For Vercel Serverless Function export
 export default app;
+
