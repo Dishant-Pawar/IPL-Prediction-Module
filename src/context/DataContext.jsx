@@ -30,14 +30,18 @@ export const DataProvider = ({ children }) => {
       const chanData = await chanRes.json();
 
       if (statsData && !statsData.error) setStats(statsData);
+      else if (statsData && (statsData.error || statsData.message)) alert(`Dashboard Load Issue: ${statsData.message || statsData.error}`);
+
       if (Array.isArray(predData)) setPredictions(predData);
       if (Array.isArray(chanData)) setChannels(chanData);
       setLoading(false);
 
     } catch (err) {
       console.error('Error fetching global data:', err);
+      alert(`Network Fault: ${err.message}`);
       setLoading(false);
     }
+
   };
 
   useEffect(() => {
