@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
+import API_BASE_URL from '../apiConfig';
+
 
 const ManageChannels = () => {
   const { channels, refreshData, loading } = useData();
@@ -8,7 +10,7 @@ const ManageChannels = () => {
   const handleAddChannel = async () => {
     if (!formData.name) return;
     try {
-      const response = await fetch('http://localhost:5000/api/channels', {
+      const response = await fetch(`${API_BASE_URL}/api/channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -29,7 +31,7 @@ const ManageChannels = () => {
     if (!window.confirm(`Are you sure you want to delete '${name}' and all its associated records? This cannot be undone.`)) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/channels/${encodeURIComponent(name)}`, {
+      const response = await fetch(`${API_BASE_URL}/api/channels/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       });
       
