@@ -42,7 +42,7 @@ const Analytics = () => {
     if (editCount === 0) return;
 
     try {
-        const response = await fetch('/api/predictions/bulk-update', {
+        const response = await fetch('http://localhost:5000/api/predictions/bulk-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ edits: localEdits }),
@@ -61,7 +61,7 @@ const Analytics = () => {
     const edits = localEdits[id];
     if (!edits) return;
     try {
-      const response = await fetch(`/api/predictions/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/predictions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(edits),

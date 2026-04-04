@@ -17,9 +17,9 @@ export const DataProvider = ({ children }) => {
   const fetchData = async () => {
     try {
       const [statsRes, predRes, chanRes] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/predictions'),
-        fetch('/api/channels')
+        fetch('http://localhost:5000/api/stats'),
+        fetch('http://localhost:5000/api/predictions'),
+        fetch('http://localhost:5000/api/channels')
       ]);
 
       const statsData = await statsRes.json();
